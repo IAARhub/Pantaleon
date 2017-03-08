@@ -30,7 +30,7 @@ from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 
 
-# In[ ]:
+# In[2]:
 
 #Don't use a python long as this don't work on 32 bits computers.
 numpy.random.seed(0xbeef)
@@ -38,7 +38,7 @@ rng = RandomStreams(seed=numpy.random.randint(1 << 30))
 theano.config.warn.subtensor_merge_bug = False
 
 
-# In[ ]:
+# In[3]:
 
 def build_rbm(v, W, bv, bh, k):
     '''Construct a k-step Gibbs chain starting at v for an RBM.
@@ -92,7 +92,7 @@ def build_rbm(v, W, bv, bh, k):
 
 
 
-# In[ ]:
+# In[4]:
 
 def shared_normal(num_rows, num_cols, scale=1):
    '''Initialize a matrix shared variable with normally distributed
@@ -106,7 +106,7 @@ def shared_zeros(*shape):
    return theano.shared(numpy.zeros(shape, dtype=theano.config.floatX))
 
 
-# In[ ]:
+# In[5]:
 
 def build_rnnrbm(n_visible, n_hidden, n_hidden_recurrent):
     '''Construct a symbolic RNN-RBM and initialize parameters.
@@ -193,7 +193,7 @@ def build_rnnrbm(n_visible, n_hidden, n_hidden_recurrent):
             updates_generate)
 
 
-# In[ ]:
+# In[6]:
 
 class RnnRbm:
     '''Simple class to train an RNN-RBM from MIDI files and to generate sample
@@ -204,7 +204,7 @@ class RnnRbm:
         n_hidden=150,
         n_hidden_recurrent=100,
         lr=0.001,
-        r=(36, 95),     #r=(21, 109), 
+        r=(21, 109), #r=(36, 95),     
         dt=0.15
     ):
         '''Constructs and compiles Theano functions for training and sequence
@@ -224,6 +224,7 @@ class RnnRbm:
             reducido a 36-95  Do de C2 a Si de C6 para evitar notas outliers
             para solo melodia de clave de sol de 60-95  (C4-C6)
             para acompañamiento clave fa (36-60)  (C2-C3)
+             ojo que si un midi de entrenamiento tiene notas fuera de rango da error
         dt : float
             Sampling period when converting the MIDI files into piano-rolls, or
             equivalently the time difference between consecutive time steps.'''
@@ -266,9 +267,23 @@ class RnnRbm:
             can safely interrupt training with Ctrl+C at any time.'''
 
         assert len(files) > 0, 'Training set is empty!'                                ' (did you download the data files?)'
-        dataset = [midiread(f, self.r,
-                            self.dt).piano_roll.astype(theano.config.floatX)
-                   for f in files]
+            
+        allFilesProcessed = False
+        while not allFilesProcessed:
+            try:    
+                dataset = [midiread(f, self.r,
+                                self.dt).piano_roll.astype(theano.config.floatX)
+                       for f in files]
+                allFilesProcessed = True
+
+            except:
+                    #si el archivo genera un error lo renombra a .err en disco, 
+                    #lo elimina de la lista de midis y reintenta
+                    
+                    print ("File: " + f)
+                    os.rename(f, f + ".err")
+                    files.remove(f)
+                    continue
 
         try:
             for epoch in range(num_epochs):
@@ -310,7 +325,7 @@ class RnnRbm:
             pylab.title('generated piano-roll')
 
 
-# In[ ]:
+# In[7]:
 
 def train_rnnrbm(directory, dataset , batch_size=100, num_epochs=200):
     model = RnnRbm()
@@ -323,23 +338,46 @@ def train_rnnrbm(directory, dataset , batch_size=100, num_epochs=200):
     return model
 
 
-# In[ ]:
+# In[14]:
 
 #main
 
 import os
 import time
+import ConfigParser
 
 if __name__ == '__main__':
     directory = os.getcwd()+"\\"
-    dataset = 'Piazzolla'
+    configDirectory = os.path.join(os.path.split(os.path.dirname(directory))[0], 'config')
+    configFile = configDirectory + "\\config.ini" 
+    print (configFile)
+    #read parameters from configuration file
+    Config = ConfigParser.ConfigParser()
+    Config.read(configFile)
+    dataset = Config.get('Parameters', 'dataset')
+    batch_size = int(Config.get('Parameters', 'batch_size'))
+    num_epochs = int(Config.get('Parameters', 'num_epochs'))
+    print (dataset)
+    print (batch_size)
+    print (num_epochs)
+   
     outputDirectory = os.path.join(os.path.split(os.path.dirname(directory))[0], 'output')
     print ('comienza entrenamiento ' + time.strftime("%Y%m%d-%H%M%S"))
-    model = train_rnnrbm(directory, dataset, 100, 110)
+    model = train_rnnrbm(directory, dataset, batch_size, num_epochs)
     outputFile = outputDirectory + "\\" + 'gen_' + dataset + "_" + time.strftime("%Y%m%d-%H%M%S") + '.mid'
     model.generate(outputFile)
     #pylab.show()
     print ('fin del proceso ' + time.strftime("%Y%m%d-%H%M%S"))
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
 
 
 # In[ ]:
