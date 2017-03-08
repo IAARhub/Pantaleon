@@ -1,0 +1,7 @@
+Un track midi potencialmente tiene la melodia principal si:
+
+- Hay una progresión de notas ejecutadas no simultaneamente.
+- La mayoria de las notas son tocadas de manera individual-monofonica. (No abundan intervalos armonicos)
+- Suele tener más volumen que las demas piezas (Variable volume)
+- El paneo suele estar al centro. (Variable pan)
+- Suele ser más agudo (Variable notes) que la mayoria de las otros tracks.
