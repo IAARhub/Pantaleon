@@ -1,0 +1,12 @@
+https://github.com/igorski/molecular-music-generator
+http://a-touch-of-music.blogspot.co.uk/2013/08/algorithmic-composition-generating.html
+https://www.youtube.com/watch?v=3Z8CuAC_-bg
+http://zaemis.blogspot.co.uk/2013/05/composing-music-with-php.html
+
+
+
+
+Set key
+Set scale
+Set chords
+set melody

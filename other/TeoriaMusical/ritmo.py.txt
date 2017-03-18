@@ -1,0 +1,29 @@
+// Redonda
+r = 1
+
+// Blanca
+b = r / 2
+
+// Blanca con puntillo
+bp = (r/2) + n
+
+// Negra
+n = b / 2
+
+
+// Negra con puntillo
+np = (b/2) + c
+
+
+// Corchea
+c = n / 2
+
+
+
+// Semicorchea
+sc = c / 2
+
+
+
+
+TresTresDos = ["np", "np", "n"];
